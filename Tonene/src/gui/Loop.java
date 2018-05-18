@@ -8,7 +8,7 @@ import java.awt.image.BufferStrategy;
 
 import javax.swing.JFrame;
 
-import brain.Perceptron;
+import brain.NeuralNetwork;
 
 public class Loop extends Canvas implements Runnable {
 
@@ -25,7 +25,7 @@ public class Loop extends Canvas implements Runnable {
 	private static Keyboard keyboard;
 	
 	private static Point[] points;
-	private static Perceptron brain;
+	private static NeuralNetwork brain;
 	private static int i = 0;
 	
 	
@@ -53,7 +53,7 @@ public class Loop extends Canvas implements Runnable {
 		addKeyListener(keyboard);
 		
 
-		brain = new Perceptron();
+		brain = new NeuralNetwork();
 		points = new Point[100];
 		for (int i = 0; i < 100; i++) {
 			Point p = new Point();
