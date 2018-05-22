@@ -1,76 +1,111 @@
 package brain;
 
-import java.util.Random;
 
-import gui.Point;
 import math.Matrixf;
 import math.Vectorf;
 import math.Function;
 
 public class NeuralNetwork {
 	
-	private float w1;
-	private float w2;
+	private Matrixf weightsInputHidden;
+	private Matrixf weightsHiddenOutput;
 	
-	private float[][] weightsInputHidden;
-	private float[][] weigthsHiddenOutput;
+	private Vectorf biasHidden;
+	private Vectorf biasOutput;
 	
-	private float[] biasHidden;
-	private float[] biasOutput;
+	private int inputSize;
+	private int hiddenSize;
+	private int outputSize;
 	
-	private final float learningRate = 0.05f;
+	private Vectorf error;
 	
-	public NeuralNetwork() {
-		Random r = new Random();
-		w1 = r.nextFloat();
-		w2 = r.nextFloat();
-	}
+	private final float learningRate = 0.01f;
+	
 	
 	public NeuralNetwork(int inputSize, int hiddenNeuronAmount, int outputSize) {
-		weightsInputHidden = Matrixf.randomMatrix(hiddenNeuronAmount, inputSize);
-		weigthsHiddenOutput = Matrixf.randomMatrix(outputSize, hiddenNeuronAmount);
+		this.weightsInputHidden = new Matrixf(hiddenNeuronAmount, inputSize);
+		this.weightsInputHidden.randomize();
+		this.weightsHiddenOutput = new Matrixf(outputSize, hiddenNeuronAmount);
+		this.weightsHiddenOutput.randomize();
 		
-		biasHidden = new float[hiddenNeuronAmount];
-		biasOutput = new float[outputSize];
-	}
-	
-	public float guess(Point p) {
-		float guess = p.getX() * w1 + p.getY() * w2;
-		return activate(guess);
-	}
-	
-	public float[] guess(float[] input) {
-		float[] hiddenValues = Vectorf.applyFunction(Vectorf.add(Matrixf.matrixVector(weightsInputHidden, input), biasHidden), Function.SIGMOID);
-		float[] outputValues = Vectorf.applyFunction(Vectorf.add(Matrixf.matrixVector(weigthsHiddenOutput, hiddenValues), biasOutput), Function.SIGMOID);
+		this.biasHidden = new Vectorf(hiddenNeuronAmount);
+		this.biasHidden.randomize();
+		this.biasOutput = new Vectorf(outputSize);
+		this.biasOutput.randomize();
 		
-		return outputValues;
+		this.inputSize = inputSize;
+		this.hiddenSize = hiddenNeuronAmount;
+		this.outputSize = outputSize;
+		
 	}
 	
-	private float activate(float value) {
-		if (value < 0) {
-			return 0;
+
+	public Vectorf guess(Vectorf input) {
+		Vectorf hidden1 = weightsInputHidden.multiply(input);
+		Vectorf hidden2 = hidden1.add(biasHidden);
+		Vectorf hidden3 = hidden2.applyFunction(Function.SIGMOID);
+
+		Vectorf output1 = weightsHiddenOutput.multiply(hidden3);
+		Vectorf output2 = output1.add(biasOutput);
+		Vectorf output3 = output2.applyFunction(Function.SIGMOID);
+		
+		return output3;
+	}
+	
+
+
+	public void train(Vectorf input, Vectorf target) {
+		
+		//	Guess
+		Vectorf hiddenValues = weightsInputHidden.multiply(input);
+		Vectorf hiddenBiased = hiddenValues.add(biasHidden);
+		Vectorf hiddenActivated = hiddenBiased.applyFunction(Function.SIGMOID);
+
+		Vectorf outputValues = weightsHiddenOutput.multiply(hiddenActivated);
+		Vectorf outputBiased = outputValues.add(biasOutput);
+		Vectorf outputActivated = outputBiased.applyFunction(Function.SIGMOID);
+		
+		
+		
+		//	Output errors
+		Vectorf errorOutput = target.substract(outputActivated);
+		error = errorOutput;
+		
+		Vectorf outputGradient = outputBiased.applyFunction(Function.D_SIGMOID);
+		outputGradient = outputGradient.multiply(errorOutput);
+		outputGradient = outputGradient.multiply(learningRate);
+		Matrixf deltaW_ho = outputGradient.toMatrixf().cross(hiddenActivated.toMatrixf().transpose());
+		
+		weightsHiddenOutput = weightsHiddenOutput.add(deltaW_ho);
+		biasOutput = biasOutput.add(outputGradient);
+		
+		
+		
+		//	Hidden errors
+		Vectorf errorHidden = weightsHiddenOutput.transpose().multiply(errorOutput);
+		
+		Vectorf hiddenGradient = hiddenBiased.applyFunction(Function.D_SIGMOID);
+		hiddenGradient = hiddenGradient.multiply(errorHidden);
+		hiddenGradient = hiddenGradient.multiply(learningRate);
+		Matrixf deltaW_ih = hiddenGradient.toMatrixf().cross(input.toMatrixf().transpose());
+		
+		weightsInputHidden = weightsInputHidden.add(deltaW_ih);
+		biasHidden = biasHidden.add(hiddenGradient);
+		
+	}
+	
+	public float getError() {
+		float error = 0;
+		for (int i = 0; i < outputSize; i++) {
+			error += this.error.getValueAt(i) * this.error.getValueAt(i);
 		}
-		return 1;
-	}
-	
-	
-	
-	public void train(Point p) {
-		float guess = guess(p);
-		float target = p.getOutcome();
-		float error = target - guess;
-		
-		w1 += error * p.getX() * learningRate;
-		w2 += error * p.getY() * learningRate;
+		return (float) Math.sqrt(error);
 	}
 
-	public float getW1() {
-		return w1;
-	}
 
-	public float getW2() {
-		return w2;
-	}
+	
+
+
 	
 	
 

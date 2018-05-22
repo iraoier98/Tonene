@@ -2,6 +2,6 @@ package math;
 
 public enum Function {
 	
-	SIGMOID;
+	SIGMOID, D_SIGMOID;
 
 }

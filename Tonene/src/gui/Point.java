@@ -5,17 +5,21 @@ import java.util.Random;
 public class Point {
 	
 	private float x, y;
-	private float outcome;
+	private int outcome;
 	
 	
 	public Point() {
 		Random r = new Random();
 		x = 2 * r.nextFloat() - 1;
 		y = 2 * r.nextFloat() - 1;
-		if (y > x) {
-			outcome = 1;
-		}else {
+		if (y >= 0 && x >= 0) {
 			outcome = 0;
+		}else if (y >= 0 && x < 0){
+			outcome = 1;
+		}else if (y < 0 && x < 0) {
+			outcome = 2;
+		}else {
+			outcome = 3;
 		}
 	}
 
@@ -36,8 +40,13 @@ public class Point {
 	}
 
 
-	public float getOutcome() {
+	public int getOutcome() {
 		return outcome;
+	}
+	
+	public float[] toArray() {
+		float[] result = {x, y};
+		return result;
 	}
 	
 	
