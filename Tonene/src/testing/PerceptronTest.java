@@ -1,4 +1,4 @@
-package gui;
+package testing;
 
 import java.awt.Canvas;
 import java.awt.Color;
@@ -10,9 +10,11 @@ import java.util.Random;
 import javax.swing.JFrame;
 
 import brain.NeuralNetwork;
+import brain.Perceptron;
+import gui.Point2;
 import math.Vectorf;
 
-public class Loop extends Canvas implements Runnable {
+public class PerceptronTest extends Canvas implements Runnable {
 
 	private static final long serialVersionUID = 1L;
 	private final static int WIDTH = 1000;
@@ -26,12 +28,12 @@ public class Loop extends Canvas implements Runnable {
 //	private static Mouse mouse;
 //	private static Keyboard keyboard;
 	
-	private static NeuralNetwork brain;
+	private static Perceptron brain;
 	
-	private static int[][] colors;
+	private static Point2[] points;
 	
 	
-	public Loop() {
+	public PerceptronTest() {
 		Dimension size = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
 		setPreferredSize(size);
 		frame = new JFrame();
@@ -55,9 +57,17 @@ public class Loop extends Canvas implements Runnable {
 //		addKeyListener(keyboard);
 		
 
-		brain = new NeuralNetwork(2, 2, 4);
+		brain = new Perceptron();
 		
-		colors = new int[80][80];
+		points = new Point2[50];
+		
+		Random r = new Random();
+		for (int i = 0; i < 50; i++) {
+			float x = r.nextFloat() * 2 - 1;
+			float y = r.nextFloat() * 2 - 1;
+			Point2 p = new Point2(x, y);
+			points[i] = p;
+		}
 		
 		
 		//	Begin thread execution.
@@ -130,53 +140,68 @@ public class Loop extends Canvas implements Runnable {
 		//	DO NOT MODIFY ABOVE
 		
 		g.drawRect(100,	100, 800, 800);
-		g.drawLine(500, HEIGHT - 100, 500, 100);
-		g.drawLine(WIDTH - 100, 500, 100, 500);
+		g.drawLine(100, 900, 900, 100);
 		
 
+		
+		
+		
+		
+		for (int i = 0; i < 50; i++) {
+			float mapX = map(points[i].x, -1, 1, 100, 900);
+			float mapY = map(points[i].y, -1, 1, 900, 100);
+			if (points[i].outcome == 1) {
+				g.setColor(Color.GREEN);
+			}else {
+				g.setColor(Color.RED);
+			}
+			g.fillOval((int) mapX - 8, (int) mapY - 8, 16, 16);
+		}
+		g.setColor(Color.BLACK);
+		
+		
+		
+		
+		
+		
 
 		Random r = new Random();
 
 		//	Guess
-		for (int i = 0; i < 80; i++) {
-			float x = map(i, 0, 80, -1, 1);
-			for (int j = 0; j < 80; j++) {
-				float y = map(j, 0, 80, 1, -1);
-				float[] array = {x, y};
-				Vectorf result = brain.guess(new Vectorf(array));
-				int color = result.indexMax();
-				if (color == 0) {
-					g.setColor(Color.RED);
-				}
-				else if (color == 1) {
-					g.setColor(Color.GREEN);
-				}
-				else if (color == 2) {
-					g.setColor(Color.BLUE);
-				}
-				else {
-					g.setColor(Color.YELLOW);
-				}
-				g.fillRect(100 + 10*i, 100 + 10*j, 10, 10);
-			}
-		}
-		g.setColor(Color.BLACK);
-		g.drawRect(100,	100, 800, 800);
-		g.drawLine(500, HEIGHT - 100, 500, 100);
-		g.drawLine(WIDTH - 100, 500, 100, 500);
+//		for (int i = 0; i < 80; i++) {
+//			float x = map(i, 0, 80, -1, 1);
+//			for (int j = 0; j < 80; j++) {
+//				float y = map(j, 0, 80, 1, -1);
+//				float[] array = {x, y};
+//				Vectorf result = brain.guess(new Vectorf(array));
+//				int color = result.indexMax();
+//				if (color == 0) {
+//					g.setColor(Color.RED);
+//				}
+//				else if (color == 1) {
+//					g.setColor(Color.GREEN);
+//				}
+//				else if (color == 2) {
+//					g.setColor(Color.BLUE);
+//				}
+//				else {
+//					g.setColor(Color.YELLOW);
+//				}
+//				g.fillRect(100 + 10*i, 100 + 10*j, 10, 10);
+//			}
+//		}
 		
 		//	Train
-		for (int loop = 0; loop < 50; loop++) {
-			float gridI = r.nextFloat() * 2 - 1;
-			float gridJ = r.nextFloat() * 2 - 1;
-			float[] array = {gridI, gridJ};
-			
-			Vectorf input = new Vectorf(array);
-			Vectorf target = new Vectorf(outcomeArray(getOutcome(gridI, gridJ)));
-			brain.train(input, target);
-		}
+//		for (int loop = 0; loop < 50; loop++) {
+//			float gridI = r.nextFloat() * 2 - 1;
+//			float gridJ = r.nextFloat() * 2 - 1;
+//			float[] array = {gridI, gridJ};
+//			
+//			Vectorf input = new Vectorf(array);
+//			Vectorf target = new Vectorf(outcomeArray(getOutcome(gridI, gridJ)));
+//			brain.train(input, target);
+//		}
 		
-		g.fillOval(950, (int) (900 - brain.getError() * 800), 16, 16);
 		
 		
 		
@@ -191,25 +216,7 @@ public class Loop extends Canvas implements Runnable {
 		bs.show();
 	}
 	
-	private static int getOutcome(float x, float y) {
-		if (x >= 0 && y >= 0) {
-			return 0;
-		}
-		if (x < 0 && y >= 0) {
-			return 1;
-		}
-		if (x < 0 && y < 0) {
-			return 2;
-		}
-		return 3;
-		
-	}
-	
-	private static float[] outcomeArray(int outcome) {
-		float[] yieh = new float[4];
-		yieh[outcome] = 1;
-		return yieh;
-	}
+
 	
 
 	
@@ -222,7 +229,7 @@ public class Loop extends Canvas implements Runnable {
 
 	//Frame settings
 	public static void main(String[] args) {
-		Loop loop = new Loop();
+		PerceptronTest loop = new PerceptronTest();
 		loop.start();
 	}
 

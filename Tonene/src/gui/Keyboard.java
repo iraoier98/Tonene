@@ -3,6 +3,8 @@ package gui;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import testing.Loop;
+
 public class Keyboard extends KeyAdapter{
 	
 	private boolean pressed;
